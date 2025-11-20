@@ -112,7 +112,7 @@ async function verifyWebhookSignature(headers, body) {
     cert_url: headers['paypal-cert-url'],
     auth_algo: headers['paypal-auth-algo'],
     transmission_sig: headers['paypal-transmission-sig'],
-    webhook_id: headers['paypal-webhook-id'],
+    webhook_id: process.env.WEBHOOK_ID,
     webhook_event: body
   }, {
     headers: {
