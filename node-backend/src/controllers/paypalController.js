@@ -1,55 +1,18 @@
-const https = require('https');
-const querystring = require('querystring');
 const paypalService = require('../services/paypalService');
 const { default: axios } = require('axios');
 
-// Toggle between live and sandbox if needed via env
-const PAYPAL_VERIFY_URL = process.env.PAYPAL_IPN_URL || 'https://ipnpb.paypal.com/cgi-bin/webscr';
+const PAYPAL_API_URL = process.env.PAYPAL_API_URL || 'https://api.sandbox.paypal.com/v1';
 
-function verifyWithPayPal(payload) {
-  const postData = 'cmd=_notify-validate&' + payload;
-
-  return new Promise((resolve, reject) => {
-    const url = new URL(PAYPAL_VERIFY_URL);
-    const req = https.request({
-      hostname: url.hostname,
-      path: url.pathname,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(postData),
-      },
-    }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data.trim()));
-    });
-
-    req.on('error', reject);
-    req.write(postData);
-    req.end();
-  });
-}
 
 async function ipnHandler(req, res) {
   try {
     const webhookEvent = req.body;
 
-    console.log('paypal webhook headers', req.headers);
-    console.log('paypal webhook body', req.body);
+    const isValid = await verifyWebhookSignature(req.headers, req.body);
+    console.log('WEBHOOK VALID', isValid);
     
-    // Verify webhook signature (you'll need to implement this)
-    // const isValid = await verifyWebhookSignature(req);
-    // if (!isValid) {
-    //   console.error('Invalid webhook signature');
-    //   return res.status(400).send('Invalid signature');
-    // }
-
-    try {
-      const isValid = await verifyWebhookSignature(req.headers, req.body);
-      console.log('isValid', isValid);
-    } catch (error) {
-      console.error('Error verifying webhook signature:', error);
+    if (!isValid) {
+      console.error('Invalid webhook signature');
       return res.status(400).send('Invalid signature');
     }
 
@@ -106,7 +69,7 @@ async function getSaldo(req, res) {
 
 async function verifyWebhookSignature(headers, body) {
   const token = await getAccessToken();
-  axios.post('https://api.sandbox.paypal.com/v1/notifications/verify-webhook-signature', {
+  axios.post(PAYPAL_API_URL + '/notifications/verify-webhook-signature', {
     transmission_id: headers['paypal-transmission-id'],
     transmission_time: headers['paypal-transmission-time'],
     cert_url: headers['paypal-cert-url'],
@@ -132,7 +95,7 @@ async function verifyWebhookSignature(headers, body) {
 
 async function getAccessToken() {
   console.log('getAccessToken');
-  const response = await axios.post('https://api.sandbox.paypal.com/v1/oauth2/token', {
+  const response = await axios.post(PAYPAL_API_URL + '/oauth2/token', {
     grant_type: 'client_credentials'
   }, {
     headers: {
