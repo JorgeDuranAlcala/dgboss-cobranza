@@ -131,10 +131,12 @@ async function verifyWebhookSignature(headers, body) {
 }
 
 async function getAccessToken() {
+  console.log('getAccessToken');
   const response = await axios.post('https://api.sandbox.paypal.com/v1/oauth2/token', {
     grant_type: 'client_credentials'
   }, {
     headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic ' + Buffer.from(process.env.PAYPAL_CLIENT_ID + ':' + process.env.PAYPAL_CLIENT_SECRET).toString('base64')
     }
   });
@@ -145,4 +147,6 @@ module.exports = {
   ipnHandler,
   getHistorial,
   getSaldo,
+  getAccessToken,
+  verifyWebhookSignature
 };
