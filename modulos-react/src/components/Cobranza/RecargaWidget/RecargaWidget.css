@@ -1,0 +1,255 @@
+:root {
+  --verde-dgboss: #00A79D;
+  --gris-dgboss: #f5f5f5;
+  --texto-gris: #6c757d;
+}
+
+body {
+  background-color: var(--gris-dgboss);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container-custom {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.card-recarga {
+  background-color: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.titulo {
+  color: var(--verde-dgboss);
+  font-weight: 600;
+}
+
+.alerta {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  font-size: 0.9rem;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.slider input[type=range] {
+  width: 100%;
+  accent-color: var(--verde-dgboss);
+}
+
+.d-flex-space {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--texto-gris);
+}
+
+.resumen-box {
+  background-color: #e9fdfc;
+  border-left: 5px solid var(--verde-dgboss);
+  padding: 18px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+
+.resumen-flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-wallet {
+  font-size: 1.8rem;
+  color: var(--verde-dgboss);
+}
+
+.valor-recarga {
+  font-size: 1.4rem;
+  color: var(--verde-dgboss);
+  font-weight: bold;
+}
+
+.texto-explicativo {
+  font-size: 0.9rem;
+  color: var(--texto-gris);
+}
+
+.label-form {
+  font-size: 0.85rem;
+  margin-bottom: 8px; /* antes estaba 4px */
+  display: block;
+}
+
+/* Aumenta el espacio debajo de cada input */
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  margin-bottom: 15px; /* antes estaba 0 */
+  box-sizing: border-box;
+}
+
+/* Ajuste opcional para filas del formulario */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px; /* antes 15px */
+}
+
+.text-end {
+  width: 100%;
+  text-align: right;
+  margin-top: 10px; /* Forza que quede abajo */
+  display: block;
+}
+.col-custom {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.label-form {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.btn-pago {
+  background-color: var(--verde-dgboss);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-pago:hover {
+  background-color: #009a8c;
+}
+
+.text-end {
+  text-align: right;
+}
+
+.condiciones {
+  font-size: 0.85rem;
+  color: var(--texto-gris);
+  margin-top: 20px;
+}
+
+.condiciones .icon-left {
+  color: var(--verde-dgboss);
+  margin-right: 4px; /* reduce la separación con el texto */
+  font-size: 0.9rem; /* opcional: hace el icono un poco más pequeño */
+}
+
+/* Texto más pequeño para las condiciones */
+.condiciones p {
+  font-size: 0.75rem; /* antes 0.85rem */
+  line-height: 1.2; /* un poco más compacto */
+  display: flex;
+  align-items: center;
+  gap: 4px; /* refuerza la separación reducida entre icono y texto */
+}
+
+.modal-custom {
+  border: none;
+  border-radius: 10px;
+  padding: 0;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  padding: 20px;             /* margen interno del header */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;       /* centra icono y texto verticalmente */
+  gap: 12px;                 /* separación entre icono y texto */
+  color: var(--verde-dgboss); 
+  font-size: 1.6rem;         /* texto más grande */
+  font-weight: 600;
+  margin: 0;                 /* elimina márgenes predeterminados */
+}
+
+.modal-title .icon-left {
+  font-size: 2rem;           /* ícono más grande */
+  margin: 0;                 /* el gap maneja la separación */
+}
+
+.modal-body {
+  padding: 20px;             /* espacio interno */
+}
+
+.modal-footer {
+  padding: 15px 20px;        /* espacio interno para el botón */
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.btn-success {
+  background: var(--verde-dgboss);
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.payment-form {
+  margin-top: 24px;
+}
+
+
+/* Utilidades agregadas */
+.icon-left {
+  margin-right: 8px;
+}
+
+.col-custom {
+  flex: 1;
+}
+
+.mt-1 {
+  margin-top: 6px;
+}
+
+.texto-moneda {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.icon-verde {
+  color: var(--verde-dgboss);
+}
+
+.icon-exito {
+  color: var(--verde-dgboss); /* verde */
+  font-size: 2rem; /* más grande */
+  margin-right: 8px; /* espacio con el texto */
+}

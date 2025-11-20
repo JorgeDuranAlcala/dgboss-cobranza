@@ -1,0 +1,32 @@
+{
+  "name": "ventas",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "start3001": "cross-env PORT=3001 node src/index.js",
+    "dev": "nodemon src/index.js",
+    "dev3001": "cross-env PORT=3001 nodemon src/index.js",
+    "smoke": "node src/scripts/smokeEndpoints.js",
+    "test": "node src/scripts/smokeEndpoints.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.5",
+    "twilio": "^5.9.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.10"
+  }
+}
