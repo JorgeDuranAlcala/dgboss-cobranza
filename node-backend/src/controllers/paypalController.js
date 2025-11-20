@@ -31,32 +31,49 @@ function verifyWithPayPal(payload) {
 }
 
 async function ipnHandler(req, res) {
-  // Re-construir el payload desde req.body
-  const payload = querystring.stringify(req.body || {});
-
   try {
-/*     const verification = await verifyWithPayPal(payload);
-    if (verification !== 'VERIFIED') {
-      return res.status(200).send('IGNORED');
+    const webhookEvent = req.body;
+    
+    // Log the incoming webhook for debugging
+    console.log('PayPal Webhook received:', JSON.stringify({
+      event_type: webhookEvent.event_type,
+      resource_id: webhookEvent.resource?.id,
+      custom_id: webhookEvent.resource?.custom_id,
+      amount: webhookEvent.resource?.amount
+    }));
+
+    // Verify webhook signature (you'll need to implement this)
+    // const isValid = await verifyWebhookSignature(req);
+    // if (!isValid) {
+    //   console.error('Invalid webhook signature');
+    //   return res.status(400).send('Invalid signature');
+    // }
+
+    // Only process completed payment captures
+    if (webhookEvent.event_type !== 'PAYMENT.CAPTURE.COMPLETED') {
+      console.log(`Skipping non-payment event: ${webhookEvent.event_type}`);
+      return res.status(200).send('SKIPPED - Not a payment capture event');
     }
 
-    const status = req.body.payment_status;
-    if (status !== 'Completed') {
-      return res.status(200).send('SKIPPED');
+    const payment = webhookEvent.resource;
+    if (!payment) {
+      return res.status(400).send('Missing payment resource');
     }
 
-    const empresa_rif = req.body.custom_id || req.body.custom;
-    const paypal_txn_id = req.body.txn_id;
-    const monto_usd = parseFloat(req.body.mc_gross || '0');
+    const empresa_rif = payment.custom_id;
+    const paypal_txn_id = payment.id;
+    const monto_usd = parseFloat(payment.amount?.value || '0');
 
     if (!empresa_rif || !paypal_txn_id || !monto_usd) {
-      return res.status(400).json({ error: 'Campos obligatorios faltantes' });
+      console.error('Missing required fields:', { empresa_rif, paypal_txn_id, monto_usd });
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    await paypalService.registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd });
-    return res.status(200).send('OK'); 
-    */
-   console.log('RESPONSE: ',JSON.stringify({type: 'paypal-webhook', jsonbody: payload}));
+    console.log(`Processing payment: ${paypal_txn_id} for ${empresa_rif}, amount: ${monto_usd} USD`);
+    
+    // Uncomment when ready to process payments
+    // await paypalService.registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd });
+    
     return res.status(200).send('OK');
   } catch (err) {
     console.error('Error IPN:', err.message);
