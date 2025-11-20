@@ -1,6 +1,7 @@
 const https = require('https');
 const querystring = require('querystring');
 const paypalService = require('../services/paypalService');
+const { default: axios } = require('axios');
 
 // Toggle between live and sandbox if needed via env
 const PAYPAL_VERIFY_URL = process.env.PAYPAL_IPN_URL || 'https://ipnpb.paypal.com/cgi-bin/webscr';
@@ -43,6 +44,9 @@ async function ipnHandler(req, res) {
     //   console.error('Invalid webhook signature');
     //   return res.status(400).send('Invalid signature');
     // }
+
+    const isValid = await verifyWebhookSignature(req.headers, req.body);
+    console.log('isValid', isValid);
 
     // Only process completed payment captures
     if (webhookEvent.event_type !== 'PAYMENT.CAPTURE.COMPLETED') {
@@ -93,6 +97,43 @@ async function getSaldo(req, res) {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+}
+
+async function verifyWebhookSignature(headers, body) {
+  const token = await getAccessToken();
+  axios.post('https://api.sandbox.paypal.com/v1/notifications/verify-webhook-signature', {
+    transmission_id: headers['paypal-transmission-id'],
+    transmission_time: headers['paypal-transmission-time'],
+    cert_url: headers['paypal-cert-url'],
+    auth_algo: headers['paypal-auth-algo'],
+    transmission_sig: headers['paypal-transmission-sig'],
+    webhook_id: headers['paypal-webhook-id'],
+    webhook_event: body
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    }
+  })
+  .then(response => {
+    console.log('Webhook signature verified:', response.data);
+    return true;
+  })
+  .catch(error => {
+    console.error('Webhook signature verification failed:', error.response.data);
+    return false;
+  });
+}
+
+async function getAccessToken() {
+  const response = await axios.post('https://api.sandbox.paypal.com/v1/oauth2/token', {
+    grant_type: 'client_credentials'
+  }, {
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(process.env.PAYPAL_CLIENT_ID + ':' + process.env.PAYPAL_CLIENT_SECRET).toString('base64')
+    }
+  });
+  return response.data.access_token;
 }
 
 module.exports = {
