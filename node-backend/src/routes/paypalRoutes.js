@@ -3,14 +3,7 @@ const router = express.Router();
 const paypalController = require('../controllers/paypalController');
 
 // IPN requires urlencoded body
-router.post('/paypal/ipn', (req, res) => {
-    console.log('OK', req.body);
-    res.send('OK')
-});
-/* router.get('/paypal/ipn', (req, res) => {
-    console.log('OK');
-    res.send('OK')
-}); */
+router.post('/paypal/ipn', paypalController.ipnHandler);
 
 // APIs
 router.get('/api/recargas/:empresa_rif', paypalController.getHistorial);
