@@ -35,15 +35,8 @@ async function ipnHandler(req, res) {
     const webhookEvent = req.body;
 
     console.log('paypal webhook headers', req.headers);
+    console.log('paypal webhook body', req.body);
     
-    // Log the incoming webhook for debugging
-    console.log('PayPal Webhook received:', JSON.stringify({
-      event_type: webhookEvent.event_type,
-      resource_id: webhookEvent.resource?.id,
-      custom_id: webhookEvent.resource?.custom_id,
-      amount: webhookEvent.resource?.amount
-    }));
-
     // Verify webhook signature (you'll need to implement this)
     // const isValid = await verifyWebhookSignature(req);
     // if (!isValid) {
