@@ -45,8 +45,13 @@ async function ipnHandler(req, res) {
     //   return res.status(400).send('Invalid signature');
     // }
 
-    const isValid = await verifyWebhookSignature(req.headers, req.body);
-    console.log('isValid', isValid);
+    try {
+      const isValid = await verifyWebhookSignature(req.headers, req.body);
+      console.log('isValid', isValid);
+    } catch (error) {
+      console.error('Error verifying webhook signature:', error);
+      return res.status(400).send('Invalid signature');
+    }
 
     // Only process completed payment captures
     if (webhookEvent.event_type !== 'PAYMENT.CAPTURE.COMPLETED') {
