@@ -33,6 +33,8 @@ function verifyWithPayPal(payload) {
 async function ipnHandler(req, res) {
   try {
     const webhookEvent = req.body;
+
+    console.log('paypal webhook headers', req.headers);
     
     // Log the incoming webhook for debugging
     console.log('PayPal Webhook received:', JSON.stringify({
@@ -71,8 +73,7 @@ async function ipnHandler(req, res) {
 
     console.log(`Processing payment: ${paypal_txn_id} for ${empresa_rif}, amount: ${monto_usd} USD`);
     
-    // Uncomment when ready to process payments
-    // await paypalService.registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd });
+    await paypalService.registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd });
     
     return res.status(200).send('OK');
   } catch (err) {
