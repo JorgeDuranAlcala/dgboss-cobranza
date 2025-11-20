@@ -9,7 +9,7 @@ async function ipnHandler(req, res) {
     const webhookEvent = req.body;
 
     const isValid = await verifyWebhookSignature(req.headers, req.body);
-    console.log('WEBHOOK VALID', isValid);
+    console.log('WEBHOOK VALID', isValid || 'INVALID');
     
     if (!isValid) {
       console.error('Invalid webhook signature');
@@ -85,7 +85,7 @@ async function verifyWebhookSignature(headers, body) {
   })
   .then(response => {
     console.log('Webhook signature verified:', response.data);
-    return true;
+    return response.data.verification_status === 'SUCCESS';
   })
   .catch(error => {
     console.error('Webhook signature verification failed:', error.response.data);
@@ -94,7 +94,7 @@ async function verifyWebhookSignature(headers, body) {
 }
 
 async function getAccessToken() {
-  console.log('getAccessToken');
+  console.log('Getting access token...');
   const response = await axios.post(PAYPAL_API_URL + '/oauth2/token', {
     grant_type: 'client_credentials'
   }, {
