@@ -4,13 +4,21 @@ import {
   FaWallet,
   FaCheckCircle,
   FaInfoCircle,
+  FaTimesCircle,
 } from "react-icons/fa";
 import "./RecargaWidget.css";
+
+const EMPRESA_RIF = "J123456789";
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api'; // Adjust as needed
 
 const RecargaWidget = () => {
   const [monto, setMonto] = useState(10);
   const [showModal, setShowModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const modalRef = useRef(null);
+  const errorModalRef = useRef(null);
 
   const mensajes = monto * 10;
 
@@ -21,6 +29,93 @@ const RecargaWidget = () => {
       modalRef.current.close();
     }
   }, [showModal]);
+
+  useEffect(() => {
+    if (showErrorModal && errorModalRef.current) {
+      errorModalRef.current.showModal();
+    } else if (!showErrorModal && errorModalRef.current?.open) {
+      errorModalRef.current.close();
+    }
+  }, [showErrorModal]);
+
+  // Check for PayPal return
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const token = queryParams.get('token');
+
+    if (token) {
+      setLoading(true);
+      // Clear the token from URL to prevent re-processing on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      fetch(`${API_URL}/capture-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          empresa_rif: EMPRESA_RIF
+        }),
+      })
+        .then(async res => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Error desconocido al procesar el pago.');
+          }
+          return data;
+        })
+        .then(data => {
+          if (data.status === 'COMPLETED') {
+            setShowModal(true);
+          } else {
+            setErrorMessage(`El pago no se pudo completar. Estado: ${data.status}`);
+            setShowErrorModal(true);
+          }
+        })
+        .catch(err => {
+          console.error('Error capturing order:', err);
+          setErrorMessage(err.message || 'Ocurrió un error al procesar el pago.');
+          setShowErrorModal(true);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, []);
+
+  const handlePayment = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          monto: monto.toString(),
+          empresa_rif: EMPRESA_RIF,
+          return_url: window.location.href, // Return to current page
+          cancel_url: window.location.href  // Return to current page on cancel
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.approvalUrl) {
+        window.location.href = data.approvalUrl;
+      } else {
+        setErrorMessage('No se pudo iniciar el pago con PayPal.');
+        setShowErrorModal(true);
+      }
+    } catch (err) {
+      console.error('Error creating order:', err);
+      setErrorMessage('Ocurrió un error al iniciar el pago. Por favor revisa tu conexión.');
+      setShowErrorModal(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -98,15 +193,44 @@ const RecargaWidget = () => {
           </div>
 
           <div className="text-end">
-            <button className="btn-pago" onClick={() => setShowModal(true)}>
-              💳 Pagar ahora
+            <button
+              className="btn-pago"
+              onClick={handlePayment}
+              disabled={loading}
+            >
+              {loading ? 'Procesando...' : '💳 Pagar ahora'}
+            </button>
+          </div>
+
+          <div className="paypal-section">
+            <label className="label-form">
+              O paga de forma segura con PayPal
+            </label>
+            {/* Native button replaced the SDK container */}
+            <button
+              className="btn-paypal"
+              onClick={handlePayment}
+              disabled={loading}
+              style={{
+                backgroundColor: '#ffc439',
+                color: '#000',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '4px',
+                fontWeight: 'bold',
+                width: '100%',
+                cursor: 'pointer',
+                marginTop: '10px'
+              }}
+            >
+              {loading ? 'Cargando...' : 'Pagar con PayPal'}
             </button>
           </div>
 
           {/* Condiciones */}
           <div className="condiciones">
             <p>
-              <FaInfoCircle  className="icon-left icon-verde"/>
+              <FaInfoCircle className="icon-left icon-verde" />
               Los mensajes se acreditan en tu cuenta inmediatamente después del pago.
             </p>
             <p>
@@ -125,7 +249,7 @@ const RecargaWidget = () => {
         </div>
       </div>
 
-      {/* Modal nativo */}
+      {/* Modal Exito */}
       <dialog ref={modalRef} className="modal-custom">
         <div className="modal-header">
           <h5 className="modal-title text-success">
@@ -153,6 +277,31 @@ const RecargaWidget = () => {
         <div className="modal-footer">
           <button className="btn-success" onClick={() => setShowModal(false)}>
             Aceptar
+          </button>
+        </div>
+      </dialog>
+
+      {/* Modal Error */}
+      <dialog ref={errorModalRef} className="modal-custom">
+        <div className="modal-header">
+          <h5 className="modal-title text-danger" style={{ color: '#dc3545' }}>
+            <FaTimesCircle className="icon-exito" style={{ color: '#dc3545' }} /> Error en el pago
+          </h5>
+          <button className="btn-close" onClick={() => setShowErrorModal(false)}>
+            ×
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <p>{errorMessage}</p>
+          <p>
+            Por favor, intenta nuevamente o contacta a soporte si el problema persiste.
+          </p>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn-danger" style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px' }} onClick={() => setShowErrorModal(false)}>
+            Cerrar
           </button>
         </div>
       </dialog>

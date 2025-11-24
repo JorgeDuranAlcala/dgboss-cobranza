@@ -1,4 +1,72 @@
 const db = require('../config/db');
+const { default: axios } = require('axios');
+
+const PAYPAL_API_URL = (process.env.PAYPAL_API_URL || 'https://api.sandbox.paypal.com').replace(/\/v1\/?$/, '');
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+
+async function getAccessToken() {
+  const response = await axios.post(PAYPAL_API_URL + '/v1/oauth2/token', {
+    grant_type: 'client_credentials'
+  }, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + Buffer.from(PAYPAL_CLIENT_ID + ':' + PAYPAL_CLIENT_SECRET).toString('base64')
+    }
+  });
+  return response.data.access_token;
+}
+
+async function createOrder(monto_usd, return_url, cancel_url) {
+  const token = await getAccessToken();
+  const payload = {
+    intent: 'CAPTURE',
+    purchase_units: [{
+      amount: {
+        currency_code: 'USD',
+        value: monto_usd
+      }
+    }],
+    application_context: {
+      return_url: return_url,
+      cancel_url: cancel_url
+    }
+  };
+  console.log('Creating PayPal Order with payload:', JSON.stringify(payload, null, 2));
+
+  try {
+    const order = await axios.post(PAYPAL_API_URL + '/v2/checkout/orders', payload, {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('PayPal Order Created:', JSON.stringify(order.data, null, 2));
+    return order.data;
+  } catch (error) {
+    console.error('Error creating PayPal order:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+async function captureOrder(order_id) {
+  const token = await getAccessToken();
+  console.log(`Capturing PayPal Order: ${order_id}`);
+
+  try {
+    const response = await axios.post(PAYPAL_API_URL + `/v2/checkout/orders/${order_id}/capture`, {}, {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('PayPal Order Captured:', JSON.stringify(response.data, null, 2));
+    return response.data;
+  } catch (error) {
+    console.error('Error capturing PayPal order:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 async function registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd }) {
   const mensajes_asignados = Math.round(Number(monto_usd) * 10);
@@ -38,7 +106,7 @@ async function registrarRecarga({ empresa_rif, paypal_txn_id, monto_usd }) {
     await conn.commit();
     return { ok: true, mensajes_asignados };
   } catch (err) {
-    try { await conn.rollback(); } catch (_) {}
+    try { await conn.rollback(); } catch (_) { }
     throw err;
   } finally {
     conn.release();
@@ -75,4 +143,6 @@ module.exports = {
   registrarRecarga,
   obtenerHistorial,
   obtenerSaldo,
+  createOrder,
+  captureOrder
 };
